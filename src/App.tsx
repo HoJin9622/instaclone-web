@@ -1,25 +1,22 @@
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import Home from './screens/Home'
+import Login from './screens/Login'
+import NotFound from './screens/NotFound'
 
 function App() {
+  const isLoggedIn = false
+
   return (
-    <div>
-      <Router>
-        <Switch>
-          <Route path='/' exact>
-            <h1>Home</h1>
-          </Route>
-          <Route path='/potato'>
-            <h1>Potato</h1>
-          </Route>
-          <Route path='/banana'>
-            <h1>Banana</h1>
-          </Route>
-          <Route path='/banana/is/delicious'>
-            <h1>Banana is delicious</h1>
-          </Route>
-        </Switch>
-      </Router>
-    </div>
+    <Router>
+      <Switch>
+        <Route path='/' exact>
+          {isLoggedIn ? <Home /> : <Login />}
+        </Route>
+        <Route>
+          <NotFound />
+        </Route>
+      </Switch>
+    </Router>
   )
 }
 
