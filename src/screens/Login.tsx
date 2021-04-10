@@ -16,6 +16,7 @@ import Input from '../components/auth/Input'
 import Separator from '../components/auth/Separator'
 import PageTitle from '../components/PageTitle'
 import routes from '../routes'
+import { login, loginVariables, login_login } from '../__generated__/login'
 
 const FacebookLogin = styled.div`
   color: #385285;
@@ -49,15 +50,18 @@ const Login = () => {
     getValues,
     setError,
   } = useForm<IForm>({ mode: 'onChange' })
-  const onCompleted = (data: any) => {
+  const onCompleted = (data: login) => {
     const {
       login: { ok, error, token },
     } = data
     if (!ok) {
-      setError('result', { message: error })
+      setError('result', { message: error || undefined })
     }
   }
-  const [login, { loading }] = useMutation(LOGIN_MUTATION, { onCompleted })
+  const [login, { loading }] = useMutation<login, loginVariables>(
+    LOGIN_MUTATION,
+    { onCompleted }
+  )
 
   const onSubmitValid: SubmitHandler<IForm> = (data) => {
     if (loading) {
