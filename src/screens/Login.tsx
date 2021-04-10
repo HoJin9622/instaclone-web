@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import gql from 'graphql-tag'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import styled from 'styled-components'
+import { logUserIn } from '../apollo'
 import AuthLayout from '../components/auth/AuthLayout'
 import BottomBox from '../components/auth/BottomBox'
 import Button from '../components/auth/Button'
@@ -16,7 +17,7 @@ import Input from '../components/auth/Input'
 import Separator from '../components/auth/Separator'
 import PageTitle from '../components/PageTitle'
 import routes from '../routes'
-import { login, loginVariables, login_login } from '../__generated__/login'
+import { login, loginVariables } from '../__generated__/login'
 
 const FacebookLogin = styled.div`
   color: #385285;
@@ -46,18 +47,25 @@ const Login = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    errors,
+    formState: { isValid },
     getValues,
     setError,
+    clearErrors,
   } = useForm<IForm>({ mode: 'onChange' })
+
   const onCompleted = (data: login) => {
     const {
       login: { ok, error, token },
     } = data
     if (!ok) {
-      setError('result', { message: error || undefined })
+      return setError('result', { message: error || undefined })
+    }
+    if (token) {
+      logUserIn(token)
     }
   }
+
   const [login, { loading }] = useMutation<login, loginVariables>(
     LOGIN_MUTATION,
     { onCompleted }
@@ -71,6 +79,10 @@ const Login = () => {
     login({ variables: { username, password } })
   }
 
+  const clearLoginError = () => {
+    clearErrors('result')
+  }
+
   return (
     <AuthLayout>
       <PageTitle title='Login' />
@@ -80,13 +92,14 @@ const Login = () => {
         </div>
         <form onSubmit={handleSubmit(onSubmitValid)}>
           <Input
-            {...register('username', {
+            ref={register({
               required: 'Username is required',
               minLength: {
                 value: 5,
                 message: 'Username should be longer than 5 chars.',
               },
             })}
+            onChange={clearLoginError}
             name='username'
             type='text'
             placeholder='Username'
@@ -94,7 +107,8 @@ const Login = () => {
           />
           <FormError message={errors.username?.message} />
           <Input
-            {...register('password', { required: 'Password is reuiqred.' })}
+            ref={register({ required: 'Password is reuiqred.' })}
+            onChange={() => clearErrors('result')}
             name='password'
             type='password'
             placeholder='Password'
