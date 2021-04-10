@@ -3,7 +3,7 @@ import {
   faInstagram,
 } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useForm } from 'react-hook-form'
+import { SubmitHandler, useForm } from 'react-hook-form'
 import styled from 'styled-components'
 import AuthLayout from '../components/auth/AuthLayout'
 import BottomBox from '../components/auth/BottomBox'
@@ -22,15 +22,20 @@ const FacebookLogin = styled.div`
   }
 `
 
-const Login = () => {
-  const { register, handleSubmit } = useForm()
+interface IForm {
+  username: string
+  password: string
+}
 
-  const onSubmitValid = (data) => {
+const Login = () => {
+  const { register, handleSubmit, getValues } = useForm<IForm>()
+
+  const onSubmitValid: SubmitHandler<IForm> = (data) => {
     console.log(data)
   }
 
-  const onSubmitInvalid = (data) => {
-    console.log(data, 'Invalid')
+  const onSubmitInvalid = () => {
+    const { username, password } = getValues()
   }
 
   return (
@@ -42,17 +47,20 @@ const Login = () => {
         </div>
         <form onSubmit={handleSubmit(onSubmitValid, onSubmitInvalid)}>
           <Input
+            //@ts-ignore
             ref={register({
               required: 'Username is required.',
               minLength: 5,
-              validate: (currentValue) => currentValue.includes('potato'),
+              validate: (currentValue: string) =>
+                currentValue.includes('potato'),
             })}
             name='username'
             type='text'
             placeholder='Username'
           />
           <Input
-            ref={register({ required: 'Password is required.' })}
+            //@ts-ignore
+            ref={register({ required: true })}
             name='password'
             type='password'
             placeholder='Password'
