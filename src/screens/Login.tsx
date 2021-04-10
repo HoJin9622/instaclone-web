@@ -1,8 +1,10 @@
+import { useMutation } from '@apollo/client'
 import {
   faFacebookSquare,
   faInstagram,
 } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import gql from 'graphql-tag'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import styled from 'styled-components'
 import AuthLayout from '../components/auth/AuthLayout'
@@ -26,17 +28,43 @@ const FacebookLogin = styled.div`
 interface IForm {
   username: string
   password: string
+  result: string
 }
+
+const LOGIN_MUTATION = gql`
+  mutation login($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
+      ok
+      token
+      error
+    }
+  }
+`
 
 const Login = () => {
   const {
     register,
     handleSubmit,
     formState: { errors, isValid },
+    getValues,
+    setError,
   } = useForm<IForm>({ mode: 'onChange' })
+  const onCompleted = (data: any) => {
+    const {
+      login: { ok, error, token },
+    } = data
+    if (!ok) {
+      setError('result', { message: error })
+    }
+  }
+  const [login, { loading }] = useMutation(LOGIN_MUTATION, { onCompleted })
 
   const onSubmitValid: SubmitHandler<IForm> = (data) => {
-    // console.log(data)
+    if (loading) {
+      return
+    }
+    const { username, password } = getValues()
+    login({ variables: { username, password } })
   }
 
   return (
@@ -69,7 +97,12 @@ const Login = () => {
             hasError={Boolean(errors.password?.message)}
           />
           <FormError message={errors.password?.message} />
-          <Button type='submit' value='Log in' disabled={!isValid} />
+          <Button
+            type='submit'
+            value={loading ? 'Loading...' : 'Log in'}
+            disabled={!isValid || loading}
+          />
+          <FormError message={errors.result?.message} />
         </form>
         <Separator />
         <FacebookLogin>
