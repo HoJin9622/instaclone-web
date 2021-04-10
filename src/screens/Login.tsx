@@ -9,6 +9,7 @@ import AuthLayout from '../components/auth/AuthLayout'
 import BottomBox from '../components/auth/BottomBox'
 import Button from '../components/auth/Button'
 import FormBox from '../components/auth/FormBox'
+import FormError from '../components/auth/FormError'
 import Input from '../components/auth/Input'
 import Separator from '../components/auth/Separator'
 import PageTitle from '../components/PageTitle'
@@ -28,14 +29,14 @@ interface IForm {
 }
 
 const Login = () => {
-  const { register, handleSubmit, getValues } = useForm<IForm>()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<IForm>({ mode: 'onChange' })
 
   const onSubmitValid: SubmitHandler<IForm> = (data) => {
-    console.log(data)
-  }
-
-  const onSubmitInvalid = () => {
-    const { username, password } = getValues()
+    // console.log(data)
   }
 
   return (
@@ -45,27 +46,30 @@ const Login = () => {
         <div>
           <FontAwesomeIcon icon={faInstagram} size='3x' />
         </div>
-        <form onSubmit={handleSubmit(onSubmitValid, onSubmitInvalid)}>
+        <form onSubmit={handleSubmit(onSubmitValid)}>
           <Input
-            //@ts-ignore
-            ref={register({
-              required: 'Username is required.',
-              minLength: 5,
-              validate: (currentValue: string) =>
-                currentValue.includes('potato'),
+            {...register('username', {
+              required: 'Username is required',
+              minLength: {
+                value: 5,
+                message: 'Username should be longer than 5 chars.',
+              },
             })}
             name='username'
             type='text'
             placeholder='Username'
+            hasError={Boolean(errors.username?.message)}
           />
+          <FormError message={errors.username?.message} />
           <Input
-            //@ts-ignore
-            ref={register({ required: true })}
+            {...register('password', { required: 'Password is reuiqred.' })}
             name='password'
             type='password'
             placeholder='Password'
+            hasError={Boolean(errors.password?.message)}
           />
-          <Button type='submit' value='Log in' />
+          <FormError message={errors.password?.message} />
+          <Button type='submit' value='Log in' disabled={!isValid} />
         </form>
         <Separator />
         <FacebookLogin>
