@@ -77,12 +77,34 @@ const Likes = styled(FatText)`
 `
 
 const Photo: VFC<seeFeed_seeFeed> = ({ id, user, file, isLiked, likes }) => {
-  const [toggleLikeMutation, { loading }] = useMutation<
-    toggleLike,
-    toggleLikeVariables
-  >(TOGGLE_LIKE_MUTATION, {
-    variables: { id },
-  })
+  const updateToggleLike = (cache: any, result: any) => {
+    const {
+      data: {
+        toggleLike: { ok },
+      },
+    } = result
+    if (ok) {
+      cache.writeFragment({
+        id: `Photo:${id}`,
+        fragment: gql`
+          fragment BSName on Photo {
+            isLiked
+          }
+        `,
+        data: {
+          isLiked: !isLiked,
+        },
+      })
+    }
+  }
+
+  const [toggleLikeMutation] = useMutation<toggleLike, toggleLikeVariables>(
+    TOGGLE_LIKE_MUTATION,
+    {
+      variables: { id },
+      update: updateToggleLike,
+    }
+  )
 
   return (
     <PhotoContainer key={id}>
