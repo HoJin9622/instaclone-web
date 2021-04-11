@@ -3,9 +3,9 @@ import {
   faBookmark,
   faComment,
   faHeart,
-  faHeart as SolidHeart,
   faPaperPlane,
 } from '@fortawesome/free-regular-svg-icons'
+import { faHeart as SolidHeart } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import gql from 'graphql-tag'
 import { VFC } from 'react'
@@ -76,7 +76,33 @@ const Likes = styled(FatText)`
   display: block;
 `
 
-const Photo: VFC<seeFeed_seeFeed> = ({ id, user, file, isLiked, likes }) => {
+const Comments = styled.div`
+  margin-top: 20px;
+`
+
+const Comment = styled.div``
+
+const CommentCaption = styled.span`
+  margin-left: 10px;
+`
+
+const CommentCount = styled.span`
+  opacity: 0.7;
+  margin: 10px 0px;
+  display: block;
+  font-weight: 600;
+  font-size: 12px;
+`
+
+const Photo: VFC<seeFeed_seeFeed> = ({
+  id,
+  user,
+  file,
+  isLiked,
+  likes,
+  caption,
+  commentNumber,
+}) => {
   const updateToggleLike = (
     cache: ApolloCache<any>,
     result: FetchResult<any>
@@ -161,6 +187,15 @@ const Photo: VFC<seeFeed_seeFeed> = ({ id, user, file, isLiked, likes }) => {
           </div>
         </PhotoActions>
         <Likes>{likes === 1 ? '1 like' : `${likes} likes`}</Likes>
+        <Comments>
+          <Comment>
+            <FatText>{user.username}</FatText>
+            <CommentCaption>{caption}</CommentCaption>
+          </Comment>
+          <CommentCount>
+            {commentNumber === 1 ? '1 comment' : `${commentNumber} comments`}
+          </CommentCount>
+        </Comments>
       </PhotoData>
     </PhotoContainer>
   )
