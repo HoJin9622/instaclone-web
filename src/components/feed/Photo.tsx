@@ -14,6 +14,7 @@ import { seeFeed_seeFeed } from '../../__generated__/seeFeed'
 import { toggleLike, toggleLikeVariables } from '../../__generated__/toggleLike'
 import Avatar from '../Avatar'
 import { FatText } from '../shared'
+import Comments from './Comments'
 
 const TOGGLE_LIKE_MUTATION = gql`
   mutation toggleLike($id: Int!) {
@@ -76,24 +77,6 @@ const Likes = styled(FatText)`
   display: block;
 `
 
-const Comments = styled.div`
-  margin-top: 20px;
-`
-
-const Comment = styled.div``
-
-const CommentCaption = styled.span`
-  margin-left: 10px;
-`
-
-const CommentCount = styled.span`
-  opacity: 0.7;
-  margin: 10px 0px;
-  display: block;
-  font-weight: 600;
-  font-size: 12px;
-`
-
 const Photo: VFC<seeFeed_seeFeed> = ({
   id,
   user,
@@ -102,6 +85,7 @@ const Photo: VFC<seeFeed_seeFeed> = ({
   likes,
   caption,
   commentNumber,
+  comments,
 }) => {
   const updateToggleLike = (
     cache: ApolloCache<any>,
@@ -187,15 +171,12 @@ const Photo: VFC<seeFeed_seeFeed> = ({
           </div>
         </PhotoActions>
         <Likes>{likes === 1 ? '1 like' : `${likes} likes`}</Likes>
-        <Comments>
-          <Comment>
-            <FatText>{user.username}</FatText>
-            <CommentCaption>{caption}</CommentCaption>
-          </Comment>
-          <CommentCount>
-            {commentNumber === 1 ? '1 comment' : `${commentNumber} comments`}
-          </CommentCount>
-        </Comments>
+        <Comments
+          author={user.username}
+          caption={caption}
+          comments={comments}
+          commentNumber={commentNumber}
+        />
       </PhotoData>
     </PhotoContainer>
   )
