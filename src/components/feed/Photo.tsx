@@ -1,4 +1,4 @@
-import { useMutation } from '@apollo/client'
+import { ApolloCache, FetchResult, useMutation } from '@apollo/client'
 import {
   faBookmark,
   faComment,
@@ -77,22 +77,49 @@ const Likes = styled(FatText)`
 `
 
 const Photo: VFC<seeFeed_seeFeed> = ({ id, user, file, isLiked, likes }) => {
-  const updateToggleLike = (cache: any, result: any) => {
+  const updateToggleLike = (
+    cache: ApolloCache<any>,
+    result: FetchResult<any>
+  ) => {
     const {
       data: {
         toggleLike: { ok },
       },
     } = result
     if (ok) {
+      //   const fragmentId = `Photo:${id}`
+      //   const fragment = gql`
+      //     fragment BSName on Photo {
+      //       isLiked
+      //       likes
+      //     }
+      //   `
+      //   const result: any = cache.readFragment({
+      //     id: fragmentId,
+      //     fragment: fragment,
+      //   })
+      //   if ('isLiked' in result && 'likes' in result) {
+      //     const { isLiked: cacheIsLiked, likes: cacheLikes } = result
+      //     cache.writeFragment({
+      //       id: fragmentId,
+      //       fragment: fragment,
+      //       data: {
+      //         isLiked: !cacheIsLiked,
+      //         likes: cacheIsLiked ? cacheLikes - 1 : cacheLikes + 1,
+      //       },
+      //     })
+      //   }
       cache.writeFragment({
         id: `Photo:${id}`,
         fragment: gql`
           fragment BSName on Photo {
             isLiked
+            likes
           }
         `,
         data: {
           isLiked: !isLiked,
+          likes: isLiked ? likes - 1 : likes + 1,
         },
       })
     }
