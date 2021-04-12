@@ -97,6 +97,7 @@ const Photo: VFC<seeFeed_seeFeed> = ({
       },
     } = result
     if (ok) {
+      //   2번째 방법 캐시를 읽고 캐시의 변수를 찾아내서 쓰는 방법
       //   const fragmentId = `Photo:${id}`
       //   const fragment = gql`
       //     fragment BSName on Photo {
@@ -119,17 +120,36 @@ const Photo: VFC<seeFeed_seeFeed> = ({
       //       },
       //     })
       //   }
-      cache.writeFragment({
-        id: `Photo:${id}`,
-        fragment: gql`
-          fragment BSName on Photo {
-            isLiked
-            likes
-          }
-        `,
-        data: {
-          isLiked: !isLiked,
-          likes: isLiked ? likes - 1 : likes + 1,
+
+      // 1번째 방법 그냥 쓰기
+      // cache.writeFragment({
+      //   id: `Photo:${id}`,
+      //   fragment: gql`
+      //     fragment BSName on Photo {
+      //       isLiked
+      //       likes
+      //     }
+      //   `,
+      //   data: {
+      //     isLiked: !isLiked,
+      //     likes: isLiked ? likes - 1 : likes + 1,
+      //   },
+      // })
+
+      // 3번째 방법 modify
+      const photoId = `Photo:${id}`
+      cache.modify({
+        id: photoId,
+        fields: {
+          isLiked(prev) {
+            return !prev
+          },
+          likes(prev) {
+            if (isLiked) {
+              return prev - 1
+            }
+            return prev + 1
+          },
         },
       })
     }
