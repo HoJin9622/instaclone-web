@@ -1,8 +1,9 @@
-import { useMutation } from '@apollo/client'
+import { ApolloCache, FetchResult, useMutation } from '@apollo/client'
 import gql from 'graphql-tag'
 import { VFC } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import styled from 'styled-components'
+import useUser from '../../hooks/useUser'
 import {
   createComment,
   createCommentVariables,
@@ -15,6 +16,7 @@ const CREATE_COMMENT_MUTATION = gql`
     createComment(photoId: $photoId, payload: $payload) {
       ok
       error
+      id
     }
   }
 `
@@ -50,12 +52,51 @@ const Comments: VFC<IProps> = ({
   commentNumber,
   comments,
 }) => {
+  const { data: userData } = useUser()
+  const { register, handleSubmit, setValue, getValues } = useForm<IForm>()
+
+  const createCommentUpdate = (
+    cache: ApolloCache<any>,
+    result: FetchResult<any>
+  ) => {
+    const { payload } = getValues()
+    setValue('payload', '')
+    const {
+      data: {
+        createComment: { ok, id },
+      },
+    } = result
+    if (ok && userData?.me) {
+      const newComment = {
+        __typename: 'Comment',
+        createdAt: Date.now(),
+        id,
+        isMine: true,
+        payload,
+        user: {
+          ...userData.me,
+        },
+      }
+      cache.modify({
+        id: `Photo:${photoId}`,
+        fields: {
+          comments(prev) {
+            return [...prev, newComment]
+          },
+          commentNumber(prev) {
+            return prev + 1
+          },
+        },
+      })
+    }
+  }
+
   const [createCommentMutation, { loading }] = useMutation<
     createComment,
     createCommentVariables
-  >(CREATE_COMMENT_MUTATION)
-
-  const { register, handleSubmit, setValue } = useForm<IForm>()
+  >(CREATE_COMMENT_MUTATION, {
+    update: createCommentUpdate,
+  })
 
   const onValid: SubmitHandler<IForm> = (data) => {
     const { payload } = data
@@ -65,7 +106,6 @@ const Comments: VFC<IProps> = ({
     createCommentMutation({
       variables: { photoId, payload },
     })
-    setValue('payload', '')
   }
 
   return (
