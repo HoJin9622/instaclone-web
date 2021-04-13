@@ -1,9 +1,23 @@
 // import sanitizeHtml from 'sanitize-html'
 
+import { ApolloCache, FetchResult, useMutation } from '@apollo/client'
+import gql from 'graphql-tag'
 import { Fragment, VFC } from 'react'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components'
+import {
+  deleteComment,
+  deleteCommentVariables,
+} from '../../__generated__/deleteComment'
 import { FatText } from '../shared'
+
+const DELETE_COMMENT_MUTATION = gql`
+  mutation deleteComment($id: Int!) {
+    deleteComment(id: $id) {
+      ok
+    }
+  }
+`
 
 const CommentContainer = styled.div``
 
@@ -20,11 +34,41 @@ const CommentCaption = styled.span`
 `
 
 interface IProps {
+  id?: number
+  photoId?: number
   author?: string
   payload?: string | null
+  isMine?: boolean
 }
 
-const Comment: VFC<IProps> = ({ author, payload }) => {
+const Comment: VFC<IProps> = ({ id, photoId, author, payload, isMine }) => {
+  const updateDeleteComment = (
+    cache: ApolloCache<any>,
+    result: FetchResult<any>
+  ) => {
+    const {
+      data: {
+        deleteComment: { ok },
+      },
+    } = result
+    if (ok) {
+      cache.evict({ id: `Comment:${id}` })
+      cache.modify({
+        id: `Photo:${photoId}`,
+        fields: {
+          commentNumber(prev) {
+            return prev - 1
+          },
+        },
+      })
+    }
+  }
+
+  const [deleteCommentMutation] = useMutation<
+    deleteComment,
+    deleteCommentVariables
+  >(DELETE_COMMENT_MUTATION, { update: updateDeleteComment })
+
   // let cleanedPayload
   // if (payload) {
   //   cleanedPayload = sanitizeHtml(
@@ -34,6 +78,12 @@ const Comment: VFC<IProps> = ({ author, payload }) => {
   //     }
   //   )
   // }
+
+  const onDeleteClick = () => {
+    if (!id) return
+    deleteCommentMutation({ variables: { id } })
+  }
+
   return (
     <CommentContainer>
       <FatText>{author}</FatText>
@@ -51,6 +101,7 @@ const Comment: VFC<IProps> = ({ author, payload }) => {
           )
         )}
       </CommentCaption>
+      {isMine ? <button onClick={onDeleteClick}>❌</button> : null}
     </CommentContainer>
   )
 }
