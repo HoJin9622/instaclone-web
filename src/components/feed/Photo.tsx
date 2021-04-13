@@ -9,6 +9,7 @@ import { faHeart as SolidHeart } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import gql from 'graphql-tag'
 import { VFC } from 'react'
+import { Link } from 'react-router-dom'
 import styled from 'styled-components'
 import { seeFeed_seeFeed } from '../../__generated__/seeFeed'
 import { toggleLike, toggleLikeVariables } from '../../__generated__/toggleLike'
@@ -166,8 +167,12 @@ const Photo: VFC<seeFeed_seeFeed> = ({
   return (
     <PhotoContainer key={id}>
       <PhotoHeader>
-        <Avatar url={user?.avatar} />
-        <Username>{user?.username}</Username>
+        <Link to={`/users/${user.username}}`}>
+          <Avatar url={user.avatar} />
+        </Link>
+        <Link to={`/users/${user.username}`}>
+          <Username>{user.username}</Username>
+        </Link>
       </PhotoHeader>
       <PhotoFile src={file} />
       <PhotoData>

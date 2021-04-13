@@ -86,7 +86,9 @@ const Comment: VFC<IProps> = ({ id, photoId, author, payload, isMine }) => {
 
   return (
     <CommentContainer>
-      <FatText>{author}</FatText>
+      <Link to={`/users/${author}`}>
+        <FatText>{author}</FatText>
+      </Link>
       {/* {cleanedPayload && (
         <CommentCaption dangerouslySetInnerHTML={{ __html: cleanedPayload }} />
       )} */}
