@@ -1,4 +1,4 @@
-import { useQuery } from '@apollo/client'
+import { useMutation, useQuery } from '@apollo/client'
 import { faComment, faHeart } from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import gql from 'graphql-tag'
@@ -8,11 +8,17 @@ import Button from '../components/auth/Button'
 import PageTitle from '../components/PageTitle'
 import { FatText } from '../components/shared'
 import { PHOTO_FRAGMENT } from '../fragment'
+import useUser from '../hooks/useUser'
+import { followUser, followUserVariables } from '../__generated__/followUser'
 import {
   seeProfile,
   seeProfileVariables,
   seeProfile_seeProfile,
 } from '../__generated__/seeProfile'
+import {
+  unfollowUser,
+  unfollowUserVariables,
+} from '../__generated__/unfollowUser'
 
 const FOLLOW_USER_MUTATION = gql`
   mutation followUser($username: String!) {
@@ -129,6 +135,7 @@ const ProfileBtn = styled(Button).attrs({
 })`
   margin-left: 10px;
   margin-top: 0px;
+  cursor: pointer;
 `
 
 interface IParams {
@@ -137,9 +144,36 @@ interface IParams {
 
 const Profile = () => {
   const { username } = useParams<IParams>()
+  const { data: userData } = useUser()
   const { data, loading } = useQuery<seeProfile, seeProfileVariables>(
     SEE_PROFILE_QUERY,
     { variables: { username } }
+  )
+  const [unfollowUser] = useMutation<unfollowUser, unfollowUserVariables>(
+    UNFOLLOW_USER_MUTATION,
+    {
+      variables: { username },
+      refetchQueries: [
+        { query: SEE_PROFILE_QUERY, variables: { username } },
+        {
+          query: SEE_PROFILE_QUERY,
+          variables: { username: userData?.me?.username },
+        },
+      ],
+    }
+  )
+  const [followUser] = useMutation<followUser, followUserVariables>(
+    FOLLOW_USER_MUTATION,
+    {
+      variables: { username },
+      refetchQueries: [
+        { query: SEE_PROFILE_QUERY, variables: { username } },
+        {
+          query: SEE_PROFILE_QUERY,
+          variables: { username: userData?.me?.username },
+        },
+      ],
+    }
   )
 
   const getButton = (seeProfile: seeProfile_seeProfile) => {
@@ -149,9 +183,9 @@ const Profile = () => {
       return <ProfileBtn>Edit Profile</ProfileBtn>
     }
     if (isFollowing) {
-      return <ProfileBtn>Unfollow</ProfileBtn>
+      return <ProfileBtn onClick={() => unfollowUser()}>Unfollow</ProfileBtn>
     } else {
-      return <ProfileBtn>Follow</ProfileBtn>
+      return <ProfileBtn onClick={() => followUser()}>Follow</ProfileBtn>
     }
   }
 
