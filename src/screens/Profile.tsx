@@ -4,9 +4,31 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import gql from 'graphql-tag'
 import { useParams } from 'react-router'
 import styled from 'styled-components'
+import Button from '../components/auth/Button'
+import PageTitle from '../components/PageTitle'
 import { FatText } from '../components/shared'
 import { PHOTO_FRAGMENT } from '../fragment'
-import { seeProfile, seeProfileVariables } from '../__generated__/seeProfile'
+import {
+  seeProfile,
+  seeProfileVariables,
+  seeProfile_seeProfile,
+} from '../__generated__/seeProfile'
+
+const FOLLOW_USER_MUTATION = gql`
+  mutation followUser($username: String!) {
+    followUser(username: $username) {
+      ok
+    }
+  }
+`
+
+const UNFOLLOW_USER_MUTATION = gql`
+  mutation unfollowUser($username: String!) {
+    unfollowUser(username: $username) {
+      ok
+    }
+  }
+`
 
 const SEE_PROFILE_QUERY = gql`
   query seeProfile($username: String!) {
@@ -47,6 +69,7 @@ const Username = styled.h3`
 const Row = styled.div`
   margin-bottom: 20px;
   font-size: 16px;
+  display: flex;
 `
 const List = styled.ul`
   display: flex;
@@ -101,24 +124,51 @@ const Icon = styled.span`
   }
 `
 
+const ProfileBtn = styled(Button).attrs({
+  as: 'span',
+})`
+  margin-left: 10px;
+  margin-top: 0px;
+`
+
 interface IParams {
   username: string
 }
 
 const Profile = () => {
   const { username } = useParams<IParams>()
-  const { data } = useQuery<seeProfile, seeProfileVariables>(
+  const { data, loading } = useQuery<seeProfile, seeProfileVariables>(
     SEE_PROFILE_QUERY,
     { variables: { username } }
   )
 
+  const getButton = (seeProfile: seeProfile_seeProfile) => {
+    const { isMe, isFollowing } = seeProfile
+
+    if (isMe) {
+      return <ProfileBtn>Edit Profile</ProfileBtn>
+    }
+    if (isFollowing) {
+      return <ProfileBtn>Unfollow</ProfileBtn>
+    } else {
+      return <ProfileBtn>Follow</ProfileBtn>
+    }
+  }
+
   return (
     <div>
+      <PageTitle
+        title={
+          loading ? 'Loading...' : `${data?.seeProfile?.username}'s Profile`
+        }
+      />
+
       <Header>
         {data?.seeProfile?.avatar && <Avatar src={data?.seeProfile?.avatar} />}
         <Column>
           <Row>
             <Username>{data?.seeProfile?.username}</Username>
+            {data?.seeProfile ? getButton(data.seeProfile) : null}
           </Row>
           <Row>
             <List>
@@ -146,7 +196,7 @@ const Profile = () => {
       </Header>
       <Grid>
         {data?.seeProfile?.photos?.map((photo) => (
-          <Photo bg={photo?.file}>
+          <Photo key={photo?.id} bg={photo?.file}>
             <Icons>
               <Icon>
                 <FontAwesomeIcon icon={faHeart} />

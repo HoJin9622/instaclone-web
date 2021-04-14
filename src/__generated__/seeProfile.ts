@@ -18,7 +18,6 @@ export interface seeProfile_seeProfile_photos {
 
 export interface seeProfile_seeProfile {
   __typename: "User";
-  id: number;
   firstName: string;
   lastName: string | null;
   username: string;
