@@ -7,7 +7,6 @@ import { seeProfile, seeProfileVariables } from '../__generated__/seeProfile'
 const SEE_PROFILE_QUERY = gql`
   query seeProfile($username: String!) {
     seeProfile(username: $username) {
-      id
       firstName
       lastName
       username
