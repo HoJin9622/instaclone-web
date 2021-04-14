@@ -14,6 +14,7 @@ import Button from '../components/auth/Button'
 import PageTitle from '../components/PageTitle'
 import { FatText } from '../components/shared'
 import { PHOTO_FRAGMENT } from '../fragment'
+import useUser from '../hooks/useUser'
 import { followUser, followUserVariables } from '../__generated__/followUser'
 import {
   seeProfile,
@@ -149,6 +150,7 @@ interface IParams {
 
 const Profile = () => {
   const { username } = useParams<IParams>()
+  const { data: user } = useUser()
   const client = useApolloClient()
   const { data, loading } = useQuery<seeProfile, seeProfileVariables>(
     SEE_PROFILE_QUERY,
@@ -178,6 +180,14 @@ const Profile = () => {
         },
       },
     })
+    cache.modify({
+      id: `User:${user?.me?.username}`,
+      fields: {
+        totalFollowing(prev) {
+          return prev - 1
+        },
+      },
+    })
   }
 
   const [unfollowUser] = useMutation<unfollowUser, unfollowUserVariables>(
@@ -203,6 +213,14 @@ const Profile = () => {
           return true
         },
         totalFollowers(prev) {
+          return prev + 1
+        },
+      },
+    })
+    cache.modify({
+      id: `User:${user?.me?.username}`,
+      fields: {
+        totalFollowing(prev) {
           return prev + 1
         },
       },
