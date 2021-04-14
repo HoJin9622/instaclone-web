@@ -167,7 +167,7 @@ const Photo: VFC<seeFeed_seeFeed> = ({
   return (
     <PhotoContainer key={id}>
       <PhotoHeader>
-        <Link to={`/users/${user.username}}`}>
+        <Link to={`/users/${user.username}`}>
           <Avatar url={user.avatar} />
         </Link>
         <Link to={`/users/${user.username}`}>
